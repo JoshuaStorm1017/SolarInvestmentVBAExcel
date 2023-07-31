@@ -1,0 +1,129 @@
+Option Explicit
+
+
+Sub CalculateSolarInvestment()
+
+    ' Define the worksheet
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Sheet1")  ' adjust as necessary
+
+    ' assign variables
+    Dim loanAmount As Double
+    Dim lengthOfLoan As Integer
+    Dim interestRateOnLoan As Double
+    Dim monthlyElectricityWithSolar As Double
+    Dim monthlyElectricityWithoutSolar As Double
+    Dim yearlyIncreaseInElectricity As Double
+    Dim spAnnualReturn As Double
+    Dim personalTaxRate As Double
+    Dim year As Integer
+    Dim monthlyBillForSolar As Double
+    Dim yearlySPreturn As Double
+    
+    loanAmount = ws.Cells(1, 2).Value
+    lengthOfLoan = ws.Cells(2, 2).Value
+    interestRateOnLoan = ws.Cells(3, 2).Value
+    monthlyElectricityWithSolar = ws.Cells(4, 2).Value
+    monthlyElectricityWithoutSolar = ws.Cells(5, 2).Value
+    yearlyIncreaseInElectricity = ws.Cells(6, 2).Value
+    spAnnualReturn = ws.Cells(7, 2).Value
+    personalTaxRate = ws.Cells(8, 2).Value
+    
+    'input check
+    If loanAmount <= 9000 Then
+        ws.Cells(1, 3).Value = "Please enter a number greater than 9000."
+        ws.Cells(1, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(1, 3).Value = ""
+    End If
+
+    If lengthOfLoan < 5 Or lengthOfLoan > 25 Then
+        ws.Cells(2, 3).Value = "Please enter a number between 5 and 25."
+        ws.Cells(2, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(2, 3).Value = ""
+    End If
+   
+    If interestRateOnLoan < 1 Or interestRateOnLoan > 50 Then
+        ws.Cells(3, 3).Value = "Please enter a number between 1 and 50."
+        ws.Cells(3, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(3, 3).Value = ""
+    End If
+   
+    If monthlyElectricityWithSolar < 0 Or monthlyElectricityWithSolar > 500 Then
+        ws.Cells(4, 3).Value = "Please enter a number between 0 and 500."
+        ws.Cells(4, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(4, 3).Value = ""
+    End If
+
+    If monthlyElectricityWithoutSolar < 50 Or monthlyElectricityWithoutSolar > 5000 Then
+        ws.Cells(5, 3).Value = "Please enter a number between 50 and 5000."
+        ws.Cells(5, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(5, 3).Value = ""
+    End If
+
+    
+    If yearlyIncreaseInElectricity < 0 Or yearlyIncreaseInElectricity > 15 Then
+        ws.Cells(6, 3).Value = "Please enter a number between 0 and 15."
+        ws.Cells(6, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(6, 3).Value = ""
+    End If
+
+    
+    If spAnnualReturn < 1 Or spAnnualReturn > 25 Then
+        ws.Cells(7, 3).Value = "Please enter a number between 1 and 25."
+        ws.Cells(7, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(7, 3).Value = ""
+    End If
+
+    If personalTaxRate < 1 Or personalTaxRate > 65 Then
+        ws.Cells(8, 3).Value = "Please enter a number between 1 and 65."
+        ws.Cells(8, 3).Font.Color = RGB(255, 0, 0)
+        Exit Sub
+    Else
+        ws.Cells(8, 3).Value = ""
+    End If
+
+    ' Calculate monthly bill for solar
+    
+    monthlyBillForSolar = (loanAmount * (interestRateOnLoan / 100) / 12) / (1 - (1 + (interestRateOnLoan / 100) / 12) ^ -(lengthOfLoan * 12))
+
+    ' Populate Excel sheet with results
+    For year = 1 To lengthOfLoan
+        ws.Cells(10 + year, 3).Value = monthlyBillForSolar
+    Next year
+    
+    For year = 1 To 25
+        ws.Cells(10 + year, 5).Value = monthlyElectricityWithSolar * (1 + yearlyIncreaseInElectricity / 100) ^ (year - 1)
+        ws.Cells(10 + year, 7).Value = monthlyElectricityWithoutSolar * (1 + yearlyIncreaseInElectricity / 100) ^ (year - 1)
+    Next year
+    
+    ' Initialize the first year's return
+    ws.Cells(11, 11).Value = ws.Cells(11, 10).Value * (1 + (spAnnualReturn / 100))
+
+    ' Calculate the return for the remaining years
+    For year = 2 To lengthOfLoan
+        ws.Cells(10 + year, 11).Value = ws.Cells(10 + year - 1, 11).Value + ws.Cells(10 + year, 10).Value * (1 + (spAnnualReturn / 100))
+    Next year
+
+    ' Continue the calculation for the remaining years after the loan has been paid off
+    For year = lengthOfLoan + 1 To 25
+        ws.Cells(10 + year, 11).Value = ws.Cells(10 + year - 1, 11).Value * (1 + (spAnnualReturn / 100))
+    Next year
+    
+    'give total return on S&P investment minus tax rate
+    ws.Cells(35, 13).Value = ws.Cells(35, 11).Value * (1 - (personalTaxRate / 100))
+    
+End Sub
